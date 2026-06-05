@@ -1,10 +1,15 @@
 {
   "domain": "solaredge2mqtt_forecast",
   "name": "SolarEdge2MQTT Forecast",
-  "codeowners": ["@DerOetzi"],
+  "codeowners": [
+    "@DerOetzi"
+  ],
   "config_flow": true,
+  "dependencies": [
+    "mqtt"
+  ],
   "documentation": "https://github.com/DerOetzi/solaredge2mqtt_forecast",
-  "dependencies": ["mqtt"],
+  "integration_type": "service",
   "issue_tracker": "https://github.com/DerOetzi/solaredge2mqtt_forecast/issues",
   "iot_class": "local_push",
   "version": "0.1.0"

@@ -30,23 +30,27 @@ class SolarEdge2MQTTForecastCoordinator:
 
     async def async_setup(self) -> None:
         topic = self.entry.data.get(CONF_TOPIC, DEFAULT_TOPIC)
+
         self._unsubscribe = await mqtt.async_subscribe(
             self.hass,
             topic,
             self._message_received,
             qos=0,
+            encoding="utf-8",
         )
 
     @callback
     def _message_received(self, message: mqtt.ReceiveMessage) -> None:
         try:
             payload = json.loads(message.payload)
-            self.data = ForecastData(
-                wh_period=self._parse_period(payload.get("energy_period", {})),
-                power_period=self._parse_period(payload.get("power_period", {})),
-            )
-        except (TypeError, ValueError, json.JSONDecodeError) as err:
-            _LOGGER.warning("Invalid solaredge2mqtt forecast payload: %s", err)
+        except (TypeError, json.JSONDecodeError) as err:
+            _LOGGER.warning("Invalid forecast payload JSON: %s", err)
+            return
+
+        self.data = ForecastData(
+            wh_period=self._parse_period(payload.get("energy_period")),
+            power_period=self._parse_period(payload.get("power_period")),
+        )
 
     @staticmethod
     def _parse_period(value: Any) -> dict[datetime, int]:
@@ -55,11 +59,14 @@ class SolarEdge2MQTTForecastCoordinator:
 
         result: dict[datetime, int] = {}
 
-        for timestamp, forecast_value in value.items():
+        for raw_timestamp, raw_value in value.items():
             try:
-                result[datetime.fromisoformat(timestamp)] = int(forecast_value)
+                timestamp = datetime.fromisoformat(str(raw_timestamp))
+                forecast_value = int(raw_value)
             except (TypeError, ValueError):
                 continue
+
+            result[timestamp] = max(0, forecast_value)
 
         return dict(sorted(result.items()))
 
