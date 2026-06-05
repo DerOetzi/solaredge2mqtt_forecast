@@ -28,5 +28,13 @@ async def async_unload_entry(
     hass: HomeAssistant,
     entry: SolarEdge2MQTTForecastConfigEntry,
 ) -> bool:
-    hass.data[DOMAIN].pop(entry.entry_id, None)
+    if isinstance(entry.runtime_data, SolarEdge2MQTTForecastCoordinator):
+        entry.runtime_data.async_unload()
+
+    domain_data = hass.data.get(DOMAIN)
+    if isinstance(domain_data, dict):
+        domain_data.pop(entry.entry_id, None)
+        if not domain_data:
+            hass.data.pop(DOMAIN, None)
+
     return True
