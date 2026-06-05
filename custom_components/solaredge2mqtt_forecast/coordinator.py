@@ -45,7 +45,7 @@ class SolarEdge2MQTTForecastCoordinator:
     def _message_received(self, message: mqtt.ReceiveMessage) -> None:
         try:
             payload = json.loads(message.payload)
-            _LOGGER.trace(payload)
+            _LOGGER.debug(payload)
         except (TypeError, json.JSONDecodeError) as err:
             _LOGGER.warning("Invalid forecast payload JSON: %s", err)
             return
@@ -55,7 +55,7 @@ class SolarEdge2MQTTForecastCoordinator:
             power_period=self._parse_period(payload.get("power_period")),
         )
 
-        _LOGGER.trace(self.data)
+        _LOGGER.debug(self.data)
 
     @staticmethod
     def _parse_period(value: Any) -> dict[datetime, int]:
