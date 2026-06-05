@@ -31,6 +31,8 @@ class SolarEdge2MQTTForecastCoordinator:
     async def async_setup(self) -> None:
         topic = self.entry.data.get(CONF_TOPIC, DEFAULT_TOPIC)
 
+        _LOGGER.debug(f"Subscribe to topic {topic}")
+
         self._unsubscribe = await mqtt.async_subscribe(
             self.hass,
             topic,
@@ -43,6 +45,7 @@ class SolarEdge2MQTTForecastCoordinator:
     def _message_received(self, message: mqtt.ReceiveMessage) -> None:
         try:
             payload = json.loads(message.payload)
+            _LOGGER.trace(payload)
         except (TypeError, json.JSONDecodeError) as err:
             _LOGGER.warning("Invalid forecast payload JSON: %s", err)
             return
@@ -51,6 +54,8 @@ class SolarEdge2MQTTForecastCoordinator:
             wh_period=self._parse_period(payload.get("energy_period")),
             power_period=self._parse_period(payload.get("power_period")),
         )
+
+        _LOGGER.trace(self.data)
 
     @staticmethod
     def _parse_period(value: Any) -> dict[datetime, int]:
